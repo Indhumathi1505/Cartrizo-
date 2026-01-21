@@ -209,7 +209,26 @@ export default function NewCarDetails() {
       </div>
 
       {/* REVIEWS */}
-     
+      <div className="reviews-section">
+        <h2>Customer Reviews</h2>
+
+        {reviews.length > 0 && (
+          <div className="pie-chart">
+            <Pie data={pieData} />
+          </div>
+        )}
+
+        <form onSubmit={submitReview}>
+          <textarea
+            value={newReview.comment}
+            onChange={e =>
+              setNewReview({ ...newReview, comment: e.target.value })
+            }
+            required
+          />
+          <button type="submit">Submit Review</button>
+        </form>
+      </div>
       {showModal && showroom && (
   <div className="dealer-modal-overlay">
     <div className="dealer-modal">
