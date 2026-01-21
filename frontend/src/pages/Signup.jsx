@@ -31,7 +31,7 @@ export default function Signup() {
       alert(data.message);
       if (res.ok) {
          localStorage.setItem("user", JSON.stringify({ email, name }));
-        navigate("/login");
+        navigate("/info");
       }
     } catch (err) {
       alert("Server error: " + err.message);
@@ -127,7 +127,7 @@ export default function Signup() {
 
           <p className="login-text">
             Already have an account?
-            <Link to="/login"> Login</Link>
+            <Link to="/info"> Login</Link>
           </p>
         </div>
 

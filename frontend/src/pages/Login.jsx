@@ -58,7 +58,7 @@ export default function Login() {
     name: data.name,
     role: data.role
   }));
-  navigate("/info");
+  navigate("/");
   return; // ✅ STOP HERE
 }
 
@@ -96,7 +96,7 @@ alert(data.message || "Invalid email or password");
   role: "BUYER"
 }));
 
-  navigate("/info");
+  navigate("/");
   return;
 }
 
