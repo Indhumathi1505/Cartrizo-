@@ -35,7 +35,7 @@ export default function NewCarDetails() {
   // ===== FETCH CAR =====
   useEffect(() => {
     axios
-      .get(`http://localhost:8080/api/cars/${id}`)
+      .get(`/api/cars/${id}`)
       .then(res => {
         setCar(res.data);
         setImage(res.data.image);
@@ -51,7 +51,7 @@ export default function NewCarDetails() {
     if (!buyerEmail) return;
 
     axios
-      .get(`http://localhost:8080/api/favorites/${buyerEmail}`)
+      .get(`/api/favorites/${buyerEmail}`)
       .then(res => {
         setIsFavourite(res.data.some(f => f.carId === id));
 
@@ -68,7 +68,7 @@ export default function NewCarDetails() {
 
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/favorites/toggle",
+        "/api/favorites/toggle",
         {
           userEmail: buyerEmail,
           carId: id,
@@ -86,7 +86,7 @@ export default function NewCarDetails() {
   const fetchReviews = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:8080/api/reviews/car/${id}`
+        `/api/reviews/car/${id}`
       );
       setReviews(res.data);
     } catch {
@@ -102,7 +102,7 @@ export default function NewCarDetails() {
   const contactDealer = async () => {
   try {
     const res = await axios.get(
-      `http://localhost:8080/api/cars/contact/${id}`
+      `/api/cars/contact/${id}`
     );
     setShowroom(res.data);
     setShowModal(true); // 🔥 THIS opens modal
@@ -124,7 +124,7 @@ export default function NewCarDetails() {
     }
 
     try {
-      await axios.post("http://localhost:8080/api/reviews", {
+      await axios.post("/api/reviews", {
         carId: id,
         userEmail: buyerEmail,
         rating: Number(newReview.rating),

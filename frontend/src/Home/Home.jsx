@@ -51,14 +51,15 @@ export default function Home() {
   };
 
   /* ===== Fetch Recommended Cars (NO backend change) ===== */
-  useEffect(() => {
-    api
-      .get("api/cars/recommended")
-      .then((res) => setRecommendedCars(res.data))
-      .catch((err) =>
-        console.error("Failed to load recommended cars", err)
-      );
-  }, []);
+ useEffect(() => {
+  api
+    .get("/api/cars/recommended")
+    .then((res) => setRecommendedCars(res.data))
+    .catch((err) =>
+      console.error("Failed to load recommended cars", err)
+    );
+}, []);
+
 
   return (
     <div className="cartrizo-root">

@@ -24,13 +24,13 @@ export default function Favourites() {
       try {
         // 1️⃣ Get favourite summary (id, carId, carType)
         const favRes = await axios.get(
-          `http://localhost:8080/api/favorites/${email}`
+          `/api/favorites/${email}`
         );
 
         // 2️⃣ Fetch full car details
         const cars = await Promise.all(
           favRes.data.map(async (fav) => {
-            const carUrl = `http://localhost:8080/api/cars/${fav.carId}`;
+            const carUrl = `/api/cars/${fav.carId}`;
 
 
             try {
@@ -76,7 +76,7 @@ export default function Favourites() {
   const handleRemove = async (car) => {
     try {
       await axios.delete(
-        `http://localhost:8080/api/favorites/${email}/${car.carId}`
+        `/api/favorites/${email}/${car.carId}`
       );
 
       setFavourites((prev) =>

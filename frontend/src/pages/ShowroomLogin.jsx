@@ -16,7 +16,7 @@ export default function ShowroomLogin() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8080/api/showroom/login", {
+      const res = await fetch("/api/showroom/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -38,7 +38,7 @@ export default function ShowroomLogin() {
   const handleGoogleSuccess = async (response) => {
     try {
       const user = jwtDecode(response.credential);
-      const res = await fetch("http://localhost:8080/api/showroom/google-login", {
+      const res = await fetch("/api/showroom/google-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: user.name, email: user.email }),

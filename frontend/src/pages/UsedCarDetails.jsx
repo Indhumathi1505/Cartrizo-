@@ -31,7 +31,7 @@ const buyerName = loggedUser?.name;
   useEffect(() => {
     const fetchCar = async () => {
       try {
-        const res = await axios.get(`http://localhost:8080/api/cars/${id}`);
+        const res = await axios.get(`/api/cars/${id}`);
         setCar(res.data);
         setSelectedImage(res.data.image || "");
       } catch (err) {
@@ -47,7 +47,7 @@ const buyerName = loggedUser?.name;
   // ======== FETCH REVIEWS ========
   const fetchReviews = async () => {
     try {
-      const res = await axios.get(`http://localhost:8080/api/reviews/car/${id}`, { withCredentials: true });
+      const res = await axios.get(`/api/reviews/car/${id}`, { withCredentials: true });
       setReviews(res.data);
     } catch (err) {
       console.error("Failed to fetch reviews:", err.response || err);
@@ -85,7 +85,7 @@ const buyerName = loggedUser?.name;
   if (!buyerEmail) return;
 
   axios
-    .get(`http://localhost:8080/api/favorites/${buyerEmail}`)
+    .get(`/api/favorites/${buyerEmail}`)
     .then(res => {
      setIsFavourite(res.data.some(f => f.carId === id));
 
@@ -101,7 +101,7 @@ const toggleFavourite = async () => {
 
   try {
     const res = await axios.post(
-      "http://localhost:8080/api/favorites/toggle",
+      "/api/favorites/toggle",
       {
         userEmail: buyerEmail,
         carId: id,
@@ -129,7 +129,7 @@ const toggleFavourite = async () => {
     };
 
     try {
-      await axios.post("http://localhost:8080/api/reviews", payload,{ withCredentials: true });
+      await axios.post("/api/reviews", payload,{ withCredentials: true });
       setNewReview({ rating: 5, comment: "" });
       fetchReviews(); // refresh reviews
       alert("Review submitted successfully!");

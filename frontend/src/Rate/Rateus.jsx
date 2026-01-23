@@ -45,7 +45,7 @@ export default function RateUs() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/rate",
+        "/api/rate",
         {
           userEmail: user.email, // MUST match backend
           rating: rating,

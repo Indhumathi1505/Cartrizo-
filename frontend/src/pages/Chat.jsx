@@ -4,7 +4,7 @@ import { Client } from "@stomp/stompjs";
 import axios from "axios";
 import "./Chat.css";
 
-const SOCKET_URL = "http://localhost:8080/ws";
+const SOCKET_URL = "/ws";
 
 export default function Chat({
   carId,
@@ -46,7 +46,7 @@ const finalSellerEmail =
 
   // BUYER
   if (role === "BUYER") {
-    axios.get("http://localhost:8080/api/chat/buyer", {
+    axios.get("/api/chat/buyer", {
       params: {
         carId,
         sellerEmail: receiver,
@@ -60,7 +60,7 @@ const finalSellerEmail =
 
   // SELLER
   if (role === "SELLER") {
-    axios.get("http://localhost:8080/api/chat/buyer", {
+    axios.get("/api/chat/buyer", {
       params: {
         carId,
         sellerEmail: username,

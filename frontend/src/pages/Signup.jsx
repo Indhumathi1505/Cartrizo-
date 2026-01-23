@@ -20,7 +20,7 @@ export default function Signup() {
     if (!name || !email || !password) return alert("Please fill all fields");
 
     try {
-      const res = await fetch("http://localhost:8080/api/auth/signup", {
+      const res = await fetch("api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -48,7 +48,7 @@ export default function Signup() {
       const user = jwtDecode(response.credential);
       console.log("Decoded user:", user);
 
-      const res = await fetch("http://localhost:8080/api/auth/google-login", {
+      const res = await fetch("/api/auth/google-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

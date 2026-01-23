@@ -22,7 +22,7 @@ const sellerName = loggedUser?.name;
     }
 
     axios
-      .get(`http://localhost:8080/api/chat/seller/${sellerEmail}`)
+      .get(`/api/chat/seller/${sellerEmail}`)
       .then(res => setInboxes(res.data))
       .catch(err =>
         console.error("Failed to load seller inbox:", err)
