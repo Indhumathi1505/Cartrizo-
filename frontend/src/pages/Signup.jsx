@@ -20,7 +20,7 @@ export default function Signup() {
     if (!name || !email || !password) return alert("Please fill all fields");
 
     try {
-      const res = await fetch("api/auth/signup", {
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

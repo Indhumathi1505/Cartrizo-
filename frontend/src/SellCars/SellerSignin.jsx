@@ -34,7 +34,7 @@ const SellerSignin = () => {
 
   try {
     const response = await fetch(
-      "http://localhost:8080/api/seller/verify",
+      "http://15.207.235.93:8080/api/seller/verify",
       {
         method: "POST",
         credentials: "include",

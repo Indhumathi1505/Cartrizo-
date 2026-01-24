@@ -42,7 +42,7 @@ export default function Login() {
     }
 
     try {
-      const res = await fetch("http://localhost:8080/api/auth/login", {
+      const res = await fetch("http://15.207.235.93:8080/api/auth/login", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -80,7 +80,7 @@ alert(data.message || "Invalid email or password");
       const user = jwtDecode(response.credential);
       console.log("Decoded user:", user);
 
-      const res = await fetch("http://localhost:8080/api/auth/google-login", {
+      const res = await fetch("http://15.207.235.93:8080/api/auth/google-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

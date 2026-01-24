@@ -16,7 +16,7 @@ function Profile() {
         if (!user?.email) throw new Error("User not logged in");
 
         const res = await fetch(
-          `http://localhost:8080/api/profile/${user.email}`
+          `http://15.207.235.93:8080/api/profile/${user.email}`
         );
 
         if (!res.ok) throw new Error("Failed to fetch profile");
@@ -63,7 +63,7 @@ function Profile() {
         formData.append("image", profile.imageFile);
       }
 
-      const res = await fetch("http://localhost:8080/api/profile", {
+      const res = await fetch("http://15.207.235.93:8080/api/profile", {
         method: "PUT",
         body: formData
       });

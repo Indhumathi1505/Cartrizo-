@@ -20,7 +20,7 @@ const [address, setAddress] = useState("");
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8080/api/showroom/signup", {
+      const res = await fetch("http://15.207.235.93:8080/api/showroom/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password,phone,address }),
@@ -44,7 +44,7 @@ const [address, setAddress] = useState("");
   const handleGoogleSuccess = async (response) => {
     try {
       const user = jwtDecode(response.credential);
-      const res = await fetch("http://localhost:8080/api/showroom/google-login", {
+      const res = await fetch("http://15.207.235.93:8080/api/showroom/google-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: user.email ,password:password}),
