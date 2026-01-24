@@ -1,10 +1,5 @@
-// carService.js
-import axios from "axios";
+import api from "./api";
 
-const BASE_URL = "http://localhost:8080/api/cars";
+export const getAllCars = () => api.get("/api/cars/all");
 
-export const getAllCars = () =>
-  axios.get(`${BASE_URL}/all`);
-
-export const addCar = (formData) =>
-  axios.post(`${BASE_URL}/add`, formData);
+export const addCar = (formData) => api.post("/api/cars/add", formData);

@@ -64,7 +64,7 @@ export default function UsedCars() {
      FETCH USED CARS (NO BACKEND CHANGE)
   ======================== */
   useEffect(() => {
-    api.get("api/cars/used")
+    api.get("/api/cars/used")
       .then((res) => {
         const favs = getFavourites();
 
