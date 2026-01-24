@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/auth")   // ✅ ADDED (IMPORTANT)
+@RequestMapping("/api/auth")
 @CrossOrigin(
-        origins = "http://localhost:5173",
+        origins = "http://localhost:5173", // Update with your React origin
         allowCredentials = "true"
 )
 public class AuthController {
@@ -35,77 +35,66 @@ public class AuthController {
         userRepository.save(user);
         return ResponseEntity.ok("{\"message\":\"Signup successful\"}");
     }
-    
 
     // =========================
     // NORMAL LOGIN
     // =========================
     @PostMapping("/login")
-public ResponseEntity<?> login(@RequestBody User user, HttpSession session) {
+    public ResponseEntity<?> login(@RequestBody User user, HttpSession session) {
 
-    System.out.println("LOGIN REQUEST RECEIVED");
-    System.out.println("Email: " + user.getEmail());
+        Optional<User> existingUser = userRepository.findByEmail(user.getEmail());
 
-    Optional<User> existingUser =
-            userRepository.findByEmail(user.getEmail());
+        if (existingUser.isPresent()) {
+            String dbPassword = existingUser.get().getPassword();
+            String inputPassword = user.getPassword();
 
-    if (existingUser.isPresent()) {
+            if (dbPassword != null && dbPassword.equals(inputPassword)) {
+                session.setAttribute("USER", existingUser.get());
 
-        String dbPassword = existingUser.get().getPassword();
-        String inputPassword = user.getPassword();
-
-        if (dbPassword != null && dbPassword.equals(inputPassword)) {
-
-            session.setAttribute("USER", existingUser.get());
-            return ResponseEntity.ok("{\"message\":\"Login successful\"}");
-
-        } else {
-            return ResponseEntity
-                    .status(401)
-                    .body("{\"message\":\"Incorrect password\"}");
+                // Return name from MongoDB user
+                return ResponseEntity.ok("{\"message\":\"Login successful\",\"name\":\"" 
+                        + existingUser.get().getName() + "\"}");
+            } else {
+                return ResponseEntity.status(401)
+                        .body("{\"message\":\"Incorrect password\"}");
+            }
         }
+
+        return ResponseEntity.status(404)
+                .body("{\"message\":\"User not found\"}");
     }
 
-    return ResponseEntity
-            .status(404)
-            .body("{\"message\":\"User not found\"}");
-}
-
-   
     // =========================
     // GOOGLE LOGIN / SIGNUP
     // =========================
     @PostMapping("/google-login")
-public ResponseEntity<?> googleLogin(@RequestBody User user, HttpSession session) {
+    public ResponseEntity<?> googleLogin(@RequestBody User user, HttpSession session) {
 
-    Optional<User> existingUser = userRepository.findByEmail(user.getEmail());
+        Optional<User> existingUser = userRepository.findByEmail(user.getEmail());
+        User sessionUser;
 
-    User sessionUser;
+        if (existingUser.isEmpty()) {
+            user.setPassword(""); // no password for Google login
+            sessionUser = userRepository.save(user);
+        } else {
+            sessionUser = existingUser.get();
+        }
 
-    if (existingUser.isEmpty()) {
-        user.setPassword("");
-        sessionUser = userRepository.save(user);
-    } else {
-        sessionUser = existingUser.get();
+        session.setAttribute("USER", sessionUser);
+
+        return ResponseEntity.ok("{\"message\":\"Google login successful\",\"name\":\""
+                + sessionUser.getName() + "\"}");
     }
-
-    session.setAttribute("USER", sessionUser);
-
-    return ResponseEntity.ok("{\"message\":\"Google login successful\"}");
-}
-
 
     // =========================
     // CHECK CURRENT USER (COOKIE TEST)
     // =========================
     @GetMapping("/me")
     public ResponseEntity<?> currentUser(HttpSession session) {
-
         Object user = session.getAttribute("USER");
 
         if (user == null) {
-            return ResponseEntity
-                    .status(401)
+            return ResponseEntity.status(401)
                     .body("{\"message\":\"Not logged in\"}");
         }
 
