@@ -82,7 +82,7 @@ export default function SellNewCar() {
       formData.append("sellerType", "SHOWROOM");
      const token = localStorage.getItem("showroomToken");
 
-const res = await fetch("http://localhost:8080/api/cars/add", {
+const res = await fetch("http://15.207.235.93:8080/api/cars/add", {
   method: "POST",
   headers: {
     Authorization: `Bearer ${token}`,
