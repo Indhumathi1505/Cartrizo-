@@ -1,8 +1,8 @@
-// src/api/axios.js
 import axios from "axios";
 
+// Use Vite env variable
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: import.meta.env.VITE_API_URL, 
 });
 
 export default api;
