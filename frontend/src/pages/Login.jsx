@@ -6,6 +6,8 @@ import jwtDecode from "jwt-decode";
 import loginCar from "../assets/car.jpg";
 import "./Login.css";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function Login() {
   const navigate = useNavigate();
 
@@ -14,6 +16,7 @@ export default function Login() {
   const [captcha, setCaptcha] = useState("");
   const [inputCaptcha, setInputCaptcha] = useState("");
 
+  /* ================= CLEAR OLD LOGIN ================= */
   useEffect(() => {
     localStorage.removeItem("user");
   }, []);
@@ -23,7 +26,7 @@ export default function Login() {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     let code = "";
     for (let i = 0; i < 6; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
+      code += chars[Math.floor(Math.random() * chars.length)];
     }
     setCaptcha(code);
     setInputCaptcha("");
@@ -49,97 +52,102 @@ export default function Login() {
     }
 
     try {
-      const res = await fetch(
-        "http://15.207.235.93:8080/api/auth/login",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        }
-      );
+      const res = await fetch(`${API_URL}/api/auth/login`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-      // ✅ SAFE PARSING (FIXES HTML RESPONSE ISSUE)
+      // ✅ SAFE RESPONSE HANDLING
       const text = await res.text();
-      let data;
+      let data = null;
+
       try {
         data = JSON.parse(text);
       } catch {
-        console.error("Server returned non-JSON:", text);
-        throw new Error("Server error. Please try again later.");
-      }
-
-      if (res.ok) {
-        alert("Login successful ✅");
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            email,
-            name: data.name,
-            role: data.role,
-          })
-        );
-        navigate("/");
+        console.error("Non-JSON response from server:", text);
+        alert("Server error. Please try again later.");
         return;
       }
 
-      alert(data.message || "Invalid email or password");
+      if (!res.ok) {
+        alert(data?.message || "Invalid email or password");
+        return;
+      }
+
+      // ✅ SUCCESS
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          email: data.email || email,
+          name: data.name,
+          role: data.role,
+        })
+      );
+
+      alert("Login successful ✅");
+      navigate("/");
     } catch (err) {
-      alert("Server error: " + err.message);
+      console.error(err);
+      alert("Unable to connect to server");
     }
   };
 
   /* ================= GOOGLE LOGIN ================= */
   const handleGoogleSuccess = async (response) => {
-    if (!response.credential) {
-      alert("Google credential missing!");
+    if (!response?.credential) {
+      alert("Google credential missing");
       return;
     }
 
     try {
-      const user = jwtDecode(response.credential);
+      const decoded = jwtDecode(response.credential);
 
-      const res = await fetch(
-        "http://15.207.235.93:8080/api/auth/google-login",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: user.name,
-            email: user.email,
-          }),
-        }
-      );
+      const res = await fetch(`${API_URL}/api/auth/google-login`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: decoded.name,
+          email: decoded.email,
+        }),
+      });
 
-      // ✅ SAFE PARSING AGAIN
       const text = await res.text();
-      let data;
+      let data = null;
+
       try {
         data = JSON.parse(text);
       } catch {
-        console.error("Server returned non-JSON:", text);
-        throw new Error("Server error during Google login");
-      }
-
-      if (res.ok) {
-        alert("Login successful ✅");
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            email: user.email,
-            name: user.name,
-            role: data.role || "BUYER",
-          })
-        );
-        navigate("/");
+        console.error("Non-JSON Google response:", text);
+        alert("Server error during Google login");
         return;
       }
 
-      alert(data.message || "Google login failed");
+      if (!res.ok) {
+        alert(data?.message || "Google login failed");
+        return;
+      }
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          email: decoded.email,
+          name: decoded.name,
+          role: data.role || "BUYER",
+        })
+      );
+
+      alert("Login successful ✅");
+      navigate("/");
     } catch (err) {
       console.error(err);
-      alert("Google Sign In Failed");
+      alert("Google Sign-In failed");
     }
   };
 
@@ -147,13 +155,14 @@ export default function Login() {
   return (
     <div className="login-container">
       <div className="login-card">
+
         <div className="login-left">
           <div className="semicircle-shape"></div>
           <h1>LOGIN PAGE</h1>
         </div>
 
         <div className="login-middle">
-          <img src={loginCar} alt="Login Car" />
+          <img src={loginCar} alt="Login" />
         </div>
 
         <div className="login-right">
@@ -177,9 +186,7 @@ export default function Login() {
             <div className="captcha-row">
               <div className="captcha-box">
                 {captcha}
-                <span className="refresh" onClick={generateCaptcha}>
-                  ⟳
-                </span>
+                <span className="refresh" onClick={generateCaptcha}>⟳</span>
               </div>
 
               <input
@@ -207,7 +214,7 @@ export default function Login() {
 
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
-            onError={() => alert("Google Sign In Failed!")}
+            onError={() => alert("Google Sign-In Failed")}
           />
 
           <p>
