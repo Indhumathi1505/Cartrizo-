@@ -11,7 +11,7 @@ export default function BrandCars() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get(`api/cars/brand/${brand}`)
+    api.get(`/api/cars/brand/${brand}`)
       .then(res => {
         setCars(res.data);
         setLoading(false);

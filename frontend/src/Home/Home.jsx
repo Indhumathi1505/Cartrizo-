@@ -18,7 +18,8 @@ import bentley from "../assets/brands/bentley.png";
 import mercedes from "../assets/brands/mercedes.png";
 import jaguar from "../assets/brands/jaguar.png";
 
-import axios from "axios";
+import api from "../api/api";
+
 /* ==== Brand Data ==== */
 const BRANDS = [
   { name: "Audi", src: audi },
@@ -50,7 +51,8 @@ export default function Home() {
 
   /* ===== Fetch Recommended Cars ===== */
   useEffect(() => {
-    axios.get("http://15.207.235.93:8080/api/cars/recommended") // uses env-based URL in api.js
+    api
+      .get("/api/cars/recommended") // uses env-based URL in api.js
       .then((res) => setRecommendedCars(res.data))
       .catch((err) => {
         console.error("Failed to load recommended cars", err);
