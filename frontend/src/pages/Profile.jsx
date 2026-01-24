@@ -1,22 +1,30 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Profile.css";
 
 function Profile() {
+  const navigate = useNavigate();
+
   const [profile, setProfile] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [originalProfile, setOriginalProfile] = useState(null);
   const [preview, setPreview] = useState(null);
 
-  /* ================= FETCH PROFILE (NO NESTED HOOKS) ================= */
+  /* ================= FETCH PROFILE ================= */
   useEffect(() => {
     const fetchProfile = async () => {
-      try {
-        const user = JSON.parse(localStorage.getItem("user"));
-        if (!user?.email) throw new Error("User not logged in");
+      const user = JSON.parse(localStorage.getItem("user"));
 
+      // 🔐 Guard: user not logged in
+      if (!user?.email) {
+        navigate("/login");
+        return;
+      }
+
+      try {
         const res = await fetch(
-          `http://15.207.235.93:8080/api/profile/${user.email}`
+          `${import.meta.env.VITE_API_URL}/api/profile/${user.email}`
         );
 
         if (!res.ok) throw new Error("Failed to fetch profile");
@@ -32,7 +40,7 @@ function Profile() {
     };
 
     fetchProfile();
-  }, []);
+  }, [navigate]);
 
   /* ================= HANDLE INPUT ================= */
   const handleChange = (e) => {
@@ -49,7 +57,10 @@ function Profile() {
 
   /* ================= SAVE PROFILE ================= */
   const handleSave = async () => {
-    if (!profile?.id) return alert("Profile ID missing!");
+    if (!profile?.id) {
+      alert("Profile ID missing");
+      return;
+    }
 
     try {
       const formData = new FormData();
@@ -63,10 +74,13 @@ function Profile() {
         formData.append("image", profile.imageFile);
       }
 
-      const res = await fetch("http://15.207.235.93:8080/api/profile", {
-        method: "PUT",
-        body: formData
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/profile`,
+        {
+          method: "PUT",
+          body: formData
+        }
+      );
 
       if (!res.ok) throw new Error("Update failed");
 
@@ -90,6 +104,7 @@ function Profile() {
     setPreview(null);
   };
 
+  /* ================= UI STATES ================= */
   if (loading) return <p className="loading-text">Loading profile...</p>;
   if (!profile) return <p>No profile found</p>;
 
@@ -100,6 +115,7 @@ function Profile() {
   return (
     <div className="profile-wrapper">
       <div className="profile-outer">
+
         {/* LEFT PANEL */}
         <div className="profile-card left-card">
           <div className="user-info">
@@ -111,32 +127,12 @@ function Profile() {
               <p>{profile.email || "No Email"}</p>
             </div>
           </div>
-
-          <div className="menu">
-            <div className="menu-item active">
-              <span>👤</span>
-              <p>My Profile</p>
-            </div>
-          </div>
         </div>
 
         {/* RIGHT PANEL */}
         <div className="profile-card right-card">
-          <div className="header">
-            <div className="user-info">
-              <div className="avatar-circle">
-                {avatarSrc && (
-                  <img src={avatarSrc} alt="Profile" className="avatar" />
-                )}
-              </div>
-              <div>
-                <h4>{profile.fullName || "No Name"}</h4>
-                <p>{profile.email || "No Email"}</p>
-              </div>
-            </div>
-          </div>
-
           <div className="details">
+
             <ProfileRow label="Name">
               {editMode ? (
                 <input
@@ -145,12 +141,12 @@ function Profile() {
                   onChange={handleChange}
                 />
               ) : (
-                <span className="value">{profile.fullName || "-"}</span>
+                <span>{profile.fullName || "-"}</span>
               )}
             </ProfileRow>
 
             <ProfileRow label="Email">
-              <span className="value">{profile.email}</span>
+              <span>{profile.email}</span>
             </ProfileRow>
 
             <ProfileRow label="Mobile">
@@ -161,7 +157,7 @@ function Profile() {
                   onChange={handleChange}
                 />
               ) : (
-                <span className="value">{profile.phone || "-"}</span>
+                <span>{profile.phone || "-"}</span>
               )}
             </ProfileRow>
 
@@ -173,7 +169,7 @@ function Profile() {
                   onChange={handleChange}
                 />
               ) : (
-                <span className="value">{profile.city || "-"}</span>
+                <span>{profile.city || "-"}</span>
               )}
             </ProfileRow>
 
@@ -189,7 +185,7 @@ function Profile() {
                   <option value="Female">Female</option>
                 </select>
               ) : (
-                <span className="value">{profile.gender || "-"}</span>
+                <span>{profile.gender || "-"}</span>
               )}
             </ProfileRow>
 
@@ -207,22 +203,16 @@ function Profile() {
             <div className="action-buttons">
               {editMode ? (
                 <>
-                  <button className="save-btn" onClick={handleSave}>
-                    Save Changes
-                  </button>
-                  <button className="cancel-btn" onClick={handleCancel}>
-                    Cancel
-                  </button>
+                  <button onClick={handleSave}>Save</button>
+                  <button onClick={handleCancel}>Cancel</button>
                 </>
               ) : (
-                <button
-                  className="edit-btn"
-                  onClick={() => setEditMode(true)}
-                >
+                <button onClick={() => setEditMode(true)}>
                   Edit Profile
                 </button>
               )}
             </div>
+
           </div>
         </div>
       </div>
@@ -233,7 +223,7 @@ function Profile() {
 /* ================= ROW COMPONENT ================= */
 const ProfileRow = ({ label, children }) => (
   <div className="row">
-    <span>{label}</span>
+    <strong>{label}</strong>
     {children}
   </div>
 );
