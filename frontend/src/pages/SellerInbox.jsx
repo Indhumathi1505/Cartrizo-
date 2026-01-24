@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/api";
 import Chat from "./Chat";
 import "./SellerInbox.css";
 
@@ -21,7 +21,7 @@ const sellerName = loggedUser?.name;
       return;
     }
 
-    axios
+    api
       .get(`/api/chat/seller/${sellerEmail}`)
       .then(res => setInboxes(res.data))
       .catch(err =>

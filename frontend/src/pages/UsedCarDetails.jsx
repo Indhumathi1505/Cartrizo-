@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/api";
 import { FaHeart, FaRegHeart, FaPhoneAlt } from "react-icons/fa";
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
@@ -31,7 +31,7 @@ const buyerName = loggedUser?.name;
   useEffect(() => {
     const fetchCar = async () => {
       try {
-        const res = await axios.get(`/api/cars/${id}`);
+        const res = await api.get(`/api/cars/${id}`);
         setCar(res.data);
         setSelectedImage(res.data.image || "");
       } catch (err) {
@@ -47,7 +47,7 @@ const buyerName = loggedUser?.name;
   // ======== FETCH REVIEWS ========
   const fetchReviews = async () => {
     try {
-      const res = await axios.get(`/api/reviews/car/${id}`, { withCredentials: true });
+      const res = await api.get(`/api/reviews/car/${id}`, { withCredentials: true });
       setReviews(res.data);
     } catch (err) {
       console.error("Failed to fetch reviews:", err.response || err);
@@ -59,32 +59,11 @@ const buyerName = loggedUser?.name;
     fetchReviews();
   }, [id]);
 
-  // ======== CHECK FAVOURITE ========
-  /*
-  useEffect(() => {
-    
-    setIsFavourite(favs.some(c => c._id === id));
-  }, [id]);
 
-  const toggleFavourite = () => {
-    const favs = JSON.parse(localStorage.getItem("usedFavourites")) || [];
-    if (!car) return;
-
-    if (isFavourite) {
-      const updated = favs.filter(c => c._id !== car._id);
-      localStorage.setItem("usedFavourites", JSON.stringify(updated));
-      setIsFavourite(false);
-    } else {
-      favs.push(car);
-      localStorage.setItem("usedFavourites", JSON.stringify(favs));
-      setIsFavourite(true);
-    }
-  };
-  */
  useEffect(() => {
   if (!buyerEmail) return;
 
-  axios
+  api
     .get(`/api/favorites/${buyerEmail}`)
     .then(res => {
      setIsFavourite(res.data.some(f => f.carId === id));
@@ -100,7 +79,7 @@ const toggleFavourite = async () => {
   }
 
   try {
-    const res = await axios.post(
+    const res = await api.post(
       "/api/favorites/toggle",
       {
         userEmail: buyerEmail,
@@ -129,7 +108,7 @@ const toggleFavourite = async () => {
     };
 
     try {
-      await axios.post("/api/reviews", payload,{ withCredentials: true });
+      await api.post("/api/reviews", payload,{ withCredentials: true });
       setNewReview({ rating: 5, comment: "" });
       fetchReviews(); // refresh reviews
       alert("Review submitted successfully!");

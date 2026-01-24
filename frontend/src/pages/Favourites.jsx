@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaTrashAlt } from "react-icons/fa";
-import axios from "axios";
+import api from "../api/api";
 import "./Favourites.css";
 
 export default function Favourites() {
@@ -75,7 +75,7 @@ export default function Favourites() {
   ================================ */
   const handleRemove = async (car) => {
     try {
-      await axios.delete(
+      await api.delete(
         `/api/favorites/${email}/${car.carId}`
       );
 

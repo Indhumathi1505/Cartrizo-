@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/api";
 import { FaHeart, FaRegHeart, FaPhoneAlt } from "react-icons/fa";
 import "./CarDetails.css";
 
@@ -34,7 +34,7 @@ export default function NewCarDetails() {
 
   // ===== FETCH CAR =====
   useEffect(() => {
-    axios
+    api
       .get(`/api/cars/${id}`)
       .then(res => {
         setCar(res.data);
@@ -50,7 +50,7 @@ export default function NewCarDetails() {
   useEffect(() => {
     if (!buyerEmail) return;
 
-    axios
+    api
       .get(`/api/favorites/${buyerEmail}`)
       .then(res => {
         setIsFavourite(res.data.some(f => f.carId === id));
@@ -67,7 +67,7 @@ export default function NewCarDetails() {
     }
 
     try {
-      const res = await axios.post(
+      const res = await api.post(
         "/api/favorites/toggle",
         {
           userEmail: buyerEmail,
@@ -85,7 +85,7 @@ export default function NewCarDetails() {
   // ===== FETCH REVIEWS =====
   const fetchReviews = async () => {
     try {
-      const res = await axios.get(
+      const res = await api.get(
         `/api/reviews/car/${id}`
       );
       setReviews(res.data);
@@ -101,7 +101,7 @@ export default function NewCarDetails() {
   // ===== CONTACT DEALER =====
   const contactDealer = async () => {
   try {
-    const res = await axios.get(
+    const res = await api.get(
       `/api/cars/contact/${id}`
     );
     setShowroom(res.data);
@@ -124,7 +124,7 @@ export default function NewCarDetails() {
     }
 
     try {
-      await axios.post("/api/reviews", {
+      await api.post("/api/reviews", {
         carId: id,
         userEmail: buyerEmail,
         rating: Number(newReview.rating),

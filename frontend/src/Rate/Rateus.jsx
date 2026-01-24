@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/api";
 import "./Rateus.css";
 
 export default function RateUs() {
@@ -44,7 +44,7 @@ export default function RateUs() {
     }
 
     try {
-      const response = await axios.post(
+      const response = await api.post(
         "/api/rate",
         {
           userEmail: user.email, // MUST match backend

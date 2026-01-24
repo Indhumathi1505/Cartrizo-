@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
-import axios from "axios";
+import api from "../api/api";
 import "./Chat.css";
 
 const SOCKET_URL = "/ws";
@@ -46,7 +46,7 @@ const finalSellerEmail =
 
   // BUYER
   if (role === "BUYER") {
-    axios.get("/api/chat/buyer", {
+    api.get("/api/chat/buyer", {
       params: {
         carId,
         sellerEmail: receiver,
@@ -60,7 +60,7 @@ const finalSellerEmail =
 
   // SELLER
   if (role === "SELLER") {
-    axios.get("/api/chat/buyer", {
+    api.get("/api/chat/buyer", {
       params: {
         carId,
         sellerEmail: username,
