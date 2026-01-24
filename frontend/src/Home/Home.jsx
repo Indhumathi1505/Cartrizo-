@@ -7,7 +7,7 @@ import "./Home.css";
 
 /* ==== Images ==== */
 import hero from "../assets/hero.jpg";
-import audi from "../assets/brands/honda.png";
+import audi from "../assets/brands/audi.png";       // corrected
 import bmw from "../assets/brands/bmw.jpg";
 import lamborghini from "../assets/brands/lamborghini.jpg";
 import ford from "../assets/brands/ford.jpg";
@@ -34,32 +34,32 @@ const BRANDS = [
   { name: "Jaguar", src: jaguar },
 ];
 
-const slugify = (name) =>
-  name.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
-
 export default function Home() {
   const navigate = useNavigate();
   const brandsRef = useRef(null);
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const [sellOpen, setSellOpen] = useState(false); // ✅ dropdown state
+  const [sellOpen, setSellOpen] = useState(false);
   const [recommendedCars, setRecommendedCars] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
-    setSellOpen(false); // close dropdown when menu closes
+    setSellOpen(false);
   };
 
-  /* ===== Fetch Recommended Cars (NO backend change) ===== */
- useEffect(() => {
-  api
-    .get("/api/cars/recommended")
-    .then((res) => setRecommendedCars(res.data))
-    .catch((err) =>
-      console.error("Failed to load recommended cars", err)
-    );
-}, []);
-
+  /* ===== Fetch Recommended Cars ===== */
+  useEffect(() => {
+    api
+      .get("/api/cars/recommended") // uses env-based URL in api.js
+      .then((res) => setRecommendedCars(res.data))
+      .catch((err) => {
+        console.error("Failed to load recommended cars", err);
+        setError("Failed to load recommended cars");
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <div className="cartrizo-root">
@@ -69,49 +69,23 @@ export default function Home() {
         <h2 className="menu-title">Cartrizo</h2>
 
         <ul className="menu-items">
-          <li>
-            <Link to="/" onClick={toggleMenu}>🏠 Home</Link>
-          </li>
+          <li><Link to="/" onClick={toggleMenu}>🏠 Home</Link></li>
+          <li><Link to="/new-cars" onClick={toggleMenu}>🚗 New cars</Link></li>
+          <li><Link to="/used-cars" onClick={toggleMenu}>🚘 Used cars</Link></li>
 
-          <li>
-            <Link to="/new-cars" onClick={toggleMenu}>🚗 New cars</Link>
-          </li>
-
-          <li>
-            <Link to="/used-cars" onClick={toggleMenu}>🚘 Used cars</Link>
-          </li>
-
-          {/* ===== SELL CARS DROPDOWN ===== */}
           <li className={`dropdown ${sellOpen ? "open" : ""}`}>
-            <div
-              className="dropdown-title"
-              onClick={() => setSellOpen(!sellOpen)}
-            >
+            <div className="dropdown-title" onClick={() => setSellOpen(!sellOpen)}>
               💰 Sell Cars
               <span className="arrow">{sellOpen ? "▴" : "▾"}</span>
             </div>
-
             <ul className="dropdown-menu">
-              <li>
-                <Link to="/sell-role" onClick={toggleMenu}>
-                  Sell Your Car
-                </Link>
-              </li>
-              <li>
-                <Link to="/seller/inbox" onClick={toggleMenu}>
-                  Seller Dashboard
-                </Link>
-              </li>
+              <li><Link to="/sell-role" onClick={toggleMenu}>Sell Your Car</Link></li>
+              <li><Link to="/seller/inbox" onClick={toggleMenu}>Seller Dashboard</Link></li>
             </ul>
           </li>
 
-          <li>
-            <Link to="/favourites" onClick={toggleMenu}>❤️ Favourites</Link>
-          </li>
-
-          <li>
-            <Link to="/rate-us" onClick={toggleMenu}>⭐ Rate us</Link>
-          </li>
+          <li><Link to="/favourites" onClick={toggleMenu}>❤️ Favourites</Link></li>
+          <li><Link to="/rate-us" onClick={toggleMenu}>⭐ Rate us</Link></li>
         </ul>
       </div>
 
@@ -123,7 +97,6 @@ export default function Home() {
         <div className="hero-container">
           <img src={hero} alt="Cars" className="hero-image" />
           <div className="overlay"></div>
-
           <div className="hero-content">
             <h1>
               Find Your <span>Perfect Car</span><br />
@@ -139,15 +112,13 @@ export default function Home() {
         <p className="explore-sub">
           Choose from top automobile manufacturers worldwide
         </p>
-
         <div className="brands-grid">
           {BRANDS.map((b) => (
-           <Link
-  to={`/brand/${b.name.trim().toUpperCase()}`}
-  className="brand-card"
-  key={b.name}
->
-
+            <Link
+              to={`/brand/${b.name.trim().toUpperCase()}`}
+              className="brand-card"
+              key={b.name}
+            >
               <img src={b.src} alt={b.name} />
               <span>{b.name}</span>
             </Link>
@@ -159,28 +130,26 @@ export default function Home() {
       <section className="recommended-cars">
         <h2 className="explore">Recommended Cars</h2>
 
+        {loading && <p>Loading recommended cars...</p>}
+        {error && <p className="error">{error}</p>}
+
         <div className="car-cards">
           {recommendedCars.map((car) => (
             <div className="car-card" key={car.id || car._id}>
               <img
-                src={`data:image/jpeg;base64,${car.image}`}
-                alt={car.title}
+                src={car.image ? `data:image/jpeg;base64,${car.image}` : "/placeholder.jpg"}
+                alt={car.title || "Car"}
               />
-
               <h3 className="name">{car.title}</h3>
-
               <p className="price">
                 Rs. {Number(car.price).toLocaleString("en-IN")}
               </p>
-
               <p className="location">{car.condition}</p>
-
               <div className="car-info">
                 <span>{car.year}</span>
                 <span>{car.fuelType}</span>
                 <span>{car.bodyType}</span>
               </div>
-
               <button
                 className="view-details-btn"
                 onClick={() => navigate(`/car/${car.id || car._id}`)}
