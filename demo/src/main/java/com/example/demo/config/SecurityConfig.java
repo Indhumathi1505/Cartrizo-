@@ -37,7 +37,7 @@ public class SecurityConfig {
                                 "/ws/**",
                                 "/topic/**",
                                 "/app/**",
-                                "api/cars/add",
+                                "/api/cars/add",
                                 "/api/showroom/**",
                                 "/api/cars/**",
                                 "/api/reviews/car/**",
@@ -62,8 +62,15 @@ public class SecurityConfig {
 
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowCredentials(true); // 🔥 REQUIRED FOR SESSION
-        config.setAllowedOriginPatterns(List.of("*")); // for WS testing
+        config.setAllowCredentials(true);
+        
+        // Read allowed origins from environment variable, default to localhost for development
+        String allowedOrigins = System.getenv("ALLOWED_ORIGINS");
+        if (allowedOrigins != null && !allowedOrigins.isEmpty()) {
+            config.setAllowedOrigins(List.of(allowedOrigins.split(",")));
+        } else {
+            config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000", "http://localhost:8080"));
+        }
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

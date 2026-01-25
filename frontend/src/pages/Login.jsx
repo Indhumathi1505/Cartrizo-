@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import jwtDecode from "jwt-decode";
+import api from "../api/api"; // Added import for api instance
 
 import loginCar from "../assets/car.jpg";
 import "./Login.css";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -55,99 +56,58 @@ export default function Login() {
       const res = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
-      // ✅ SAFE RESPONSE HANDLING
-      const text = await res.text();
-      let data = null;
-
-      try {
-        data = JSON.parse(text);
-      } catch {
-        console.error("Non-JSON response from server:", text);
-        alert("Server error. Please try again later.");
-        return;
-      }
-
-      if (!res.ok) {
-        alert(data?.message || "Invalid email or password");
-        return;
-      }
-
-      // ✅ SUCCESS
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          email: data.email || email,
+      const data = await res.json();
+      if (res.ok) {
+        alert("Login successful ✅");
+        localStorage.setItem("user", JSON.stringify({
+          email: email.toLowerCase(),
           name: data.name,
           role: data.role,
-        })
-      );
-
-      alert("Login successful ✅");
-      navigate("/");
+          token: data.token
+        }));
+        navigate("/info");
+        return;
+      }
+      alert(data.message || "Invalid email or password");
     } catch (err) {
-      console.error(err);
-      alert("Unable to connect to server");
+      alert("Server error: " + err.message);
     }
   };
 
   /* ================= GOOGLE LOGIN ================= */
   const handleGoogleSuccess = async (response) => {
-    if (!response?.credential) {
-      alert("Google credential missing");
-      return;
-    }
+    if (!response.credential) return alert("Google credential missing!");
 
     try {
       const decoded = jwtDecode(response.credential);
 
       const res = await fetch(`${API_URL}/api/auth/google-login`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: decoded.name,
-          email: decoded.email,
-        }),
+        body: JSON.stringify({ name: decoded.name, email: decoded.email }),
       });
 
-      const text = await res.text();
-      let data = null;
-
-      try {
-        data = JSON.parse(text);
-      } catch {
-        console.error("Non-JSON Google response:", text);
-        alert("Server error during Google login");
-        return;
-      }
-
-      if (!res.ok) {
-        alert(data?.message || "Google login failed");
-        return;
-      }
-
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          email: decoded.email,
+      const data = await res.json();
+      if (res.ok) {
+        alert("Login successful ✅");
+        localStorage.setItem("user", JSON.stringify({
+          email: decoded.email.toLowerCase(),
           name: decoded.name,
-          role: data.role || "BUYER",
-        })
-      );
-
-      alert("Login successful ✅");
-      navigate("/");
+          role: data.role,
+          token: data.token
+        }));
+        navigate("/info");
+        return;
+      }
+      alert(data.message || "Login failed");
     } catch (err) {
       console.error(err);
-      alert("Google Sign-In failed");
+      alert("Unable to connect to server");
     }
   };
 

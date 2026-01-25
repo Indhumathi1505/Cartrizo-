@@ -1,16 +1,16 @@
 package com.example.demo.security;
 
 import io.jsonwebtoken.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @Component
 public class JwtUtil {
 
-    private String SECRET_KEY = "your_secret_key";
+    @Value("${jwt.secret}")
+    private String SECRET_KEY;
 
       public String generateToken(String email, String role) {
         return Jwts.builder()

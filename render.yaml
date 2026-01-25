@@ -1,0 +1,30 @@
+services:
+  # Backend Service (Spring Boot)
+  - type: web
+    name: car-backend
+    env: java
+    buildCommand: mvn clean install -DskipTests
+    startCommand: java -jar target/car-api-0.0.1-SNAPSHOT.jar
+    rootDir: demo
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SPRING_DATA_MONGODB_URI
+        sync: false
+      - key: SPRING_DATA_MONGODB_DB
+        value: carMongoDB
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        sync: false
+
+  # Frontend Service (Static Site)
+  - type: web
+    name: car-frontend
+    env: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    rootDir: frontend
+    envVars:
+      - key: VITE_API_URL
+        sync: false
