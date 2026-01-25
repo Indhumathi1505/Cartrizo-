@@ -97,7 +97,7 @@ export default function SellCarBase({ mode }) {
         formData.append("sellerId", localStorage.getItem("sellerId"));
       }
 
-      const res = await fetch("http://15.207.235.93:8080/api/cars/add", {
+      const res = await fetch("http://65.2.49.242:8080/api/cars/add", {
         method: "POST",
         headers:
           sellerType === "SHOWROOM"

@@ -44,7 +44,7 @@ export default function ProfileInfo() {
         formData.append("image", form.image);
       }
 
-      const res = await fetch("http://15.207.235.93:8080/api/profile", {
+      const res = await fetch("http://65.2.49.242:8080/api/profile", {
         method: "POST",
         body: formData // ✅ multipart/form-data
       });
