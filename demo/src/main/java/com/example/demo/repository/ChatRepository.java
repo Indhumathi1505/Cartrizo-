@@ -7,11 +7,12 @@ import java.util.List;
 public interface ChatRepository extends MongoRepository<ChatMessage, String> {
    List<ChatMessage> findByCarIdOrderByTimestampAsc(String carId);
    
-       List<ChatMessage> findByCarIdAndSellerEmailAndBuyerEmailOrderByTimestampAsc(
-           String carId,
-           String sellerEmail,
-           String buyerEmail
-       );
+   List<ChatMessage> findBySellerEmail(String sellerEmail);
+   
+   List<ChatMessage> findByCarIdAndSellerEmailAndBuyerEmailOrderByTimestampAsc(
+       String carId,
+       String sellerEmail,
+       String buyerEmail
+   );
 
 }
-

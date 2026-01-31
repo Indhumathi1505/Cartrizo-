@@ -14,29 +14,32 @@ public class FavoriteService {
     private FavoriteRepository favoriteRepository;
 
     public List<Favorite> getFavorites(String email) {
-        return favoriteRepository.findByUserEmail(email);
+        if (email == null) return List.of();
+        return favoriteRepository.findByUserEmail(email.toLowerCase());
     }
 
     public boolean toggleFavorite(String email, String carId, String carType) {
+        if (email == null || carId == null) return false;
+        String lowEmail = email.toLowerCase();
 
         return favoriteRepository
-                .findByUserEmailAndCarId(email, carId)
+                .findByUserEmailAndCarId(lowEmail, carId)
                 .map(existing -> {
                     favoriteRepository.delete(existing);
                     return false;
                 })
                 .orElseGet(() -> {
                     favoriteRepository.save(
-                            new Favorite(email, carId, carType)
+                            new Favorite(lowEmail, carId, carType)
                     );
                     return true;
                 });
     }
 
-    // ✅ REMOVE FIX
     public void remove(String email, String carId) {
+        if (email == null || carId == null) return;
         favoriteRepository
-                .findByUserEmailAndCarId(email, carId)
+                .findByUserEmailAndCarId(email.toLowerCase(), carId)
                 .ifPresent(favoriteRepository::delete);
     }
 }

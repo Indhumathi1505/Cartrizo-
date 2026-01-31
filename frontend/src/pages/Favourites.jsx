@@ -9,7 +9,7 @@ export default function Favourites() {
   const [favourites, setFavourites] = useState([]);
   const [loading, setLoading] = useState(true);
   const user = JSON.parse(localStorage.getItem("user"));
-  const email = user?.email;
+  const email = user?.email?.toLowerCase();
 
   /* ===============================
      FETCH FAVOURITES
@@ -23,18 +23,13 @@ export default function Favourites() {
     const fetchFavourites = async () => {
       try {
         // 1️⃣ Get favourite summary (id, carId, carType)
-        const favRes = await axios.get(
-          `/api/favorites/${email}`
-        );
+        const favRes = await api.get(`/api/favorites/${email}`);
 
         // 2️⃣ Fetch full car details
         const cars = await Promise.all(
           favRes.data.map(async (fav) => {
-            const carUrl = `/api/cars/${fav.carId}`;
-
-
             try {
-              const carRes = await axios.get(carUrl);
+              const carRes = await api.get(`/api/cars/${fav.carId}`);
               return {
                 favId: fav.id,
                 carId: fav.carId,
@@ -42,13 +37,13 @@ export default function Favourites() {
                 ...carRes.data,
               };
             } catch (err) {
-              console.error(`Failed to fetch car ${fav.carId} at ${carUrl}`, err);
-              return null; // skip this car if API fails
+              console.error(`Failed to fetch car ${fav.carId}`, err);
+              return null;
             }
           })
         );
 
-        setFavourites(cars.filter(Boolean)); // remove nulls
+        setFavourites(cars.filter(Boolean));
       } catch (err) {
         console.error("Failed to fetch favourites list", err);
       } finally {
@@ -64,9 +59,9 @@ export default function Favourites() {
   ================================ */
   const handleCarClick = (car) => {
     if (car.carType === "NEW") {
-      navigate(`/new-car/${car.carId}`);
+      navigate(`/new-car/${car.carId || car.id}`);
     } else {
-      navigate(`/car/${car.carId}`);
+      navigate(`/car/${car.carId || car.id}`);
     }
   };
 
@@ -75,21 +70,17 @@ export default function Favourites() {
   ================================ */
   const handleRemove = async (car) => {
     try {
-      await api.delete(
-        `/api/favorites/${email}/${car.carId}`
-      );
+      const carId = car.carId || car.id;
+      await api.delete(`/api/favorites/${email}/${carId}`);
 
       setFavourites((prev) =>
-        prev.filter((item) => item.carId !== car.carId)
+        prev.filter((item) => (item.carId || item.id) !== carId)
       );
     } catch (err) {
-      console.error(`Failed to remove favourite car ${car.carId}`, err);
+      console.error(`Failed to remove favourite car`, err);
     }
   };
 
-  /* ===============================
-     LOADING / EMPTY STATES
-  ================================ */
   if (loading) {
     return <div className="empty-msg">Loading favourites...</div>;
   }
@@ -98,9 +89,6 @@ export default function Favourites() {
     return <div className="empty-msg">No favourite cars found!</div>;
   }
 
-  /* ===============================
-     UI
-  ================================ */
   return (
     <div className="favourites-page">
       <h1 className="page-title">My Favourites</h1>
@@ -108,11 +96,10 @@ export default function Favourites() {
       <div className="favourites-list">
         {favourites.map((car) => (
           <div
-            key={car.carId}
+            key={car.carId || car.id}
             className="car-card"
             onClick={() => handleCarClick(car)}
           >
-            {/* IMAGE */}
             <img
               src={
                 car.image
@@ -122,7 +109,6 @@ export default function Favourites() {
               alt={car.title || `${car.brand || ""} ${car.model || ""}`}
             />
 
-            {/* DETAILS */}
             <div className="car-card-content">
               <h3>{car.title || `${car.brand || ""} ${car.model || ""}`}</h3>
               <p>
@@ -133,7 +119,6 @@ export default function Favourites() {
               </p>
             </div>
 
-            {/* REMOVE */}
             <button
               className="remove-btn"
               onClick={(e) => {

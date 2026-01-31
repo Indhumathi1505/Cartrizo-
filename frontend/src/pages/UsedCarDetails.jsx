@@ -12,10 +12,8 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 export default function UsedCarDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
- const loggedUser = JSON.parse(localStorage.getItem("user"));
-const buyerEmail = loggedUser?.email;
-const buyerName = loggedUser?.name;
- // logged-in user
+  const loggedUser = JSON.parse(localStorage.getItem("user"));
+  const buyerEmail = loggedUser?.email?.toLowerCase();
 
   const [car, setCar] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -34,6 +32,13 @@ const buyerName = loggedUser?.name;
         const res = await api.get(`/api/cars/${id}`);
         setCar(res.data);
         setSelectedImage(res.data.image || "");
+
+        // Check if favourite
+        if (buyerEmail) {
+          api.get(`/api/favorites/${buyerEmail}`).then(favRes => {
+            setIsFavourite(favRes.data.some(f => f.carId === id));
+          });
+        }
       } catch (err) {
         console.error("Failed to fetch car details:", err);
         setCar(null);
@@ -42,15 +47,15 @@ const buyerName = loggedUser?.name;
       }
     };
     fetchCar();
-  }, [id]);
+  }, [id, buyerEmail]);
 
   // ======== FETCH REVIEWS ========
   const fetchReviews = async () => {
     try {
-      const res = await api.get(`/api/reviews/car/${id}`, { withCredentials: true });
+      const res = await api.get(`/api/reviews/car/${id}`);
       setReviews(res.data);
     } catch (err) {
-      console.error("Failed to fetch reviews:", err.response || err);
+      console.error("Failed to fetch reviews:", err);
       setReviews([]);
     }
   };
@@ -59,41 +64,24 @@ const buyerName = loggedUser?.name;
     fetchReviews();
   }, [id]);
 
+  const toggleFavourite = async () => {
+    if (!buyerEmail) {
+      alert("Please login");
+      navigate("/login");
+      return;
+    }
 
- useEffect(() => {
-  if (!buyerEmail) return;
-
-  api
-    .get(`/api/favorites/${buyerEmail}`)
-    .then(res => {
-     setIsFavourite(res.data.some(f => f.carId === id));
-
-    })
-    .catch(err => console.error(err));
-}, [id, buyerEmail]);
-const toggleFavourite = async () => {
-  if (!buyerEmail) {
-    alert("Please login");
-    navigate("/login");
-    return;
-  }
-
-  try {
-    const res = await api.post(
-      "/api/favorites/toggle",
-      {
+    try {
+      const res = await api.post("/api/favorites/toggle", {
         userEmail: buyerEmail,
         carId: id,
         carType: "USED"
-      }
-    );
-
-    setIsFavourite(res.data);
-  } catch (err) {
-    console.error("Toggle failed", err);
-  }
-};
-
+      });
+      setIsFavourite(res.data);
+    } catch (err) {
+      console.error("Toggle failed", err);
+    }
+  };
 
   // ======== SUBMIT REVIEW ========
   const submitReview = async (e) => {
@@ -108,39 +96,33 @@ const toggleFavourite = async () => {
     };
 
     try {
-      await api.post("/api/reviews", payload,{ withCredentials: true });
+      await api.post("/api/reviews", payload);
       setNewReview({ rating: 5, comment: "" });
-      fetchReviews(); // refresh reviews
+      fetchReviews();
       alert("Review submitted successfully!");
     } catch (err) {
-      console.error("Failed to submit review:", err.response || err);
-      const msg = err.response?.data?.message || "Something went wrong";
-      alert("Failed to submit review: " + msg);
+      console.error("Failed to submit review:", err);
+      alert("Failed to submit review");
     }
   };
 
   // ======== PIE CHART DATA ========
-  const counts = [0, 0, 0, 0, 0]; // 1★ - 5★
+  const counts = [0, 0, 0, 0, 0];
   reviews.forEach(r => counts[r.rating - 1]++);
-   const pieData = {
+  const pieData = {
     labels: ["1★", "2★", "3★", "4★", "5★"],
     datasets: [
       {
         data: counts,
-        backgroundColor: [
-          "#ce8f9cff",
-          "#73c3f8ff",
-          "#eed493ff",
-          "#9be8e8ff",
-          "#b69de8ff"
-        ]
+        backgroundColor: ["#ce8f9c", "#73c3f8", "#eed493", "#9be8e8", "#b69de8"]
       }
     ]
   };
 
-
   if (loading) return <div className="loading">Loading...</div>;
   if (!car) return <div className="loading">Car not found</div>;
+
+  const carId = car.id || car._id;
 
   return (
     <div className="cardetails-page">
@@ -148,7 +130,6 @@ const toggleFavourite = async () => {
         ← Back to Used Cars
       </button>
 
-      {/* IMAGE */}
       <div className="image-section">
         <img
           className="main-image"
@@ -156,24 +137,21 @@ const toggleFavourite = async () => {
           alt="car"
         />
         <div className="thumbnail-row">
-         {(car.images || [car.image]).map((img, index) => (
-  <img
-    key={`${img}-${index}`}
-    src={`data:image/jpeg;base64,${img}`}
-    className={selectedImage === img ? "thumb active" : "thumb"}
-    onClick={() => setSelectedImage(img)}
-    alt="thumb"
-  />
-))}
-
-
+          {(car.images || [car.image]).map((img, index) => (
+            <img
+              key={`${img}-${index}`}
+              src={`data:image/jpeg;base64,${img}`}
+              className={selectedImage === img ? "thumb active" : "thumb"}
+              onClick={() => setSelectedImage(img)}
+              alt="thumb"
+            />
+          ))}
         </div>
         <button className="favourite-btn" onClick={toggleFavourite}>
           {isFavourite ? <FaHeart /> : <FaRegHeart />}
         </button>
       </div>
 
-      {/* DETAILS */}
       <div className="details-section">
         <h1>{car.title}</h1>
         <div className="price">₹{Number(car.price).toLocaleString()}</div>
@@ -195,63 +173,36 @@ const toggleFavourite = async () => {
           <p>{car.description}</p>
         </div>
 
-        <div className="features">
-          <h3>Features</h3>
-          <div className="feature-list">
-            {car.features?.map((f, i) => (
-              <span key={i} className="feature-item">{f}</span>
-            ))}
-          </div>
-        </div>
-
-        {/* CONTACT / CHAT */}
         <div className="action-buttons">
           <button
-  className="contact-btn"
-  onClick={() => {
-    if (!buyerEmail) {
-      alert("Please login to contact owner");
-      navigate("/login");
-      return;
-    }
+            className="contact-btn"
+            onClick={() => {
+              if (!buyerEmail) {
+                alert("Please login to contact owner");
+                navigate("/login");
+                return;
+              }
+              setShowChat(prev => !prev);
+            }}
+          >
+            <FaPhoneAlt /> {showChat ? "Close Chat" : "Contact Owner"}
+          </button>
 
-    // ✅ DEBUG LOGS
-    console.log("Contact Owner Clicked");
-    console.log("Car ID:", car?._id||car?.id);
-    console.log("SellerName:", car?.sellerName);
-    console.log("BuyerEmail:", buyerEmail);
-
-    setShowChat(prev => !prev);
-  }}
->
-  <FaPhoneAlt /> {showChat ? "Close Chat" : "Contact Owner"}
-</button>
-
-
-{showChat && (car?._id || car?.id) && buyerEmail && (
-
-<Chat
-  carId={car._id || car.id}
-  user={buyerEmail}
-  role="BUYER"
-  receiver={car.sellerEmail}
-  buyerEmail={buyerEmail}          // ✅ explicit
-  sellerEmail={car.sellerEmail}    // ✅ explicit
- />
-
-
-
-)}
-
-
-
+          {showChat && carId && buyerEmail && (
+            <Chat
+              carId={carId}
+              user={buyerEmail}
+              role="BUYER"
+              receiver={car.sellerEmail}
+              buyerEmail={buyerEmail}
+              sellerEmail={car.sellerEmail}
+            />
+          )}
         </div>
       </div>
 
-      {/* REVIEWS */}
       <div className="reviews-section">
         <h2>Customer Reviews</h2>
-
         {reviews.length > 0 ? (
           <div className="pie-chart">
             <Pie data={pieData} />
@@ -260,59 +211,43 @@ const toggleFavourite = async () => {
           <p>No reviews yet</p>
         )}
 
-
-        {/* ADD REVIEW */}
         <div className="review-form">
           <h3>Add Your Review</h3>
-
           <form onSubmit={submitReview}>
             <div className="star-rating">
               {[1, 2, 3, 4, 5].map(star => (
                 <span
                   key={star}
                   className={`star ${newReview.rating >= star ? "active" : ""}`}
-                  onClick={() =>
-                    setNewReview({ ...newReview, rating: star })
-                  }
+                  onClick={() => setNewReview({ ...newReview, rating: star })}
                 >
                   ★
                 </span>
               ))}
             </div>
-
             <textarea
               placeholder="Write your review"
               value={newReview.comment}
-              onChange={e =>
-                setNewReview({ ...newReview, comment: e.target.value })
-              }
+              onChange={e => setNewReview({ ...newReview, comment: e.target.value })}
               required
             />
-
             <button type="submit">Submit Review</button>
           </form>
         </div>
-       {/* REVIEWS */}
-      <div className="reviews-section">
-        <h2>Customer Reviews</h2>
 
-        {/* REVIEW LIST */}
         <div className="review-list">
           {reviews.length ? (
             reviews.map(r => (
-  <div key={r._id} className="review-card">
-    <strong>{r.userEmail}</strong>
-    <div className="review-stars">
-      {"★".repeat(r.rating)}
-    </div>
-    <p>{r.comment}</p>
-  </div>
-))
+              <div key={r.id || r._id} className="review-card">
+                <strong>{r.userEmail}</strong>
+                <div className="review-stars">{"★".repeat(r.rating)}</div>
+                <p>{r.comment}</p>
+              </div>
+            ))
           ) : (
             <p>No reviews yet</p>
           )}
         </div>
-      </div>
       </div>
     </div>
   );

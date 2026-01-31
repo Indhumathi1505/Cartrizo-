@@ -32,61 +32,74 @@ export default function UsedCars() {
   /* =======================
      FAVOURITES
   ======================== */
-  const getFavourites = () =>
-    JSON.parse(localStorage.getItem("favourites")) || [];
+  const loggedUser = JSON.parse(localStorage.getItem("user"));
+  const buyerEmail = loggedUser?.email;
 
-  const saveFavourites = (favs) =>
-    localStorage.setItem("favourites", JSON.stringify(favs));
-
-  const toggleFavourite = (car) => {
-    let favs = getFavourites();
-    const carId = car.id || car._id;
-
-    const exists = favs.some(
-      (f) => (f.id || f._id) === carId
-    );
-
-    if (exists) {
-      favs = favs.filter(
-        (f) => (f.id || f._id) !== carId
-      );
-      car.isFavourite = false;
-    } else {
-      favs.push({ ...car, isFavourite: true });
-      car.isFavourite = true;
+  const toggleFavourite = async (car) => {
+    if (!buyerEmail) {
+      alert("Please login to add favourites");
+      navigate("/login");
+      return;
     }
 
-    saveFavourites(favs);
-    setFilteredCars([...filteredCars]);
+    try {
+      const carId = car.id || car._id;
+      const res = await api.post("api/favorites/toggle", {
+        userEmail: buyerEmail,
+        carId: carId,
+        carType: "USED"
+      });
+
+      // Update state locally
+      setCars(prev => prev.map(c => 
+        (c.id || c._id) === carId ? { ...c, isFavourite: res.data } : c
+      ));
+      setFilteredCars(prev => prev.map(c => 
+        (c.id || c._id) === carId ? { ...c, isFavourite: res.data } : c
+      ));
+    } catch (err) {
+      console.error("Failed to toggle favourite", err);
+    }
   };
 
   /* =======================
-     FETCH USED CARS (NO BACKEND CHANGE)
+     FETCH USED CARS
   ======================== */
   useEffect(() => {
+<<<<<<< HEAD
     api.get("/api/cars/used")
       .then((res) => {
         const favs = getFavourites();
+=======
+    const fetchCars = async () => {
+      try {
+        const [carsRes, favsRes] = await Promise.all([
+          api.get("api/cars/used"),
+          buyerEmail ? api.get(`api/favorites/${buyerEmail}`) : Promise.resolve({ data: [] })
+        ]);
+>>>>>>> 8922237 (msg)
 
-        const carsWithFav = res.data.map((car) => {
+        const favouriteIds = new Set(favsRes.data.map(f => f.carId));
+
+        const carsWithFav = carsRes.data.map((car) => {
           const carId = car.id || car._id;
           return {
             ...car,
-            isFavourite: favs.some(
-              (f) => (f.id || f._id) === carId
-            ),
+            isFavourite: favouriteIds.has(carId),
           };
         });
 
         setCars(carsWithFav);
         setFilteredCars(carsWithFav);
-        setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Failed to fetch used cars:", err);
+      } finally {
         setLoading(false);
-      });
-  }, []);
+      }
+    };
+
+    fetchCars();
+  }, [buyerEmail]);
 
   /* =======================
      FILTER + SEARCH LOGIC
